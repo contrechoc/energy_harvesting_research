@@ -1,0 +1,119 @@
+
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+int sensorPin = A0;    // select the input pin for the potentiometer
+int ledPin = 13;      // select the pin for the LED
+int sensorValue = 0;  // variable to store the value coming from the sensor
+int maxPPT = 0;
+int maxPPTCurrent = 0;
+int maxPPTVolt = 0;
+
+char text[] = "MPPT "; //to be changed of course :-)
+
+void setup() {
+  // declare the ledPin as an OUTPUT:
+  pinMode(ledPin, OUTPUT);  
+  Serial.begin(9600);
+
+  lcd.begin(32, 2);
+
+  lcd.setCursor(0, 0); 
+  lcd.clear(); 
+  lcd.home(); 
+
+  lcd.setCursor(3,0);  
+  lcd.print(text);
+
+
+}
+
+void loop() {
+
+  lcd.setCursor(0, 0); 
+  lcd.clear(); 
+  lcd.home(); 
+
+  lcd.setCursor(0,0);  
+  lcd.print("*mMaxP=");
+  lcd.print(maxPPT/10);
+  lcd.print(".");
+  int aHelp = maxPPT/100;
+  lcd.print( maxPPT - aHelp*10 );
+
+  // read the value from the sensor:
+  sensorValue = analogRead(sensorPin);   //A0
+  Serial.print("mA = "); 
+   if ( sensorValue < 100 ) Serial.print("0"); 
+  if ( sensorValue < 10 ) Serial.print("0"); 
+  Serial.print(sensorValue);
+  
+  lcd.setCursor(16,0);  
+  lcd.print("mA=");
+  lcd.print(sensorValue/10);
+  lcd.print(".");
+  aHelp = sensorValue/10;
+  lcd.print( sensorValue - aHelp*10 );
+
+  Serial.print("   "); 
+  Serial.print("V= "); 
+  int s2 = analogRead(A1); //A1
+  if ( s2 < 100 )  Serial.print("0");
+  if ( s2 < 10 )  Serial.print("0");
+  Serial.print(int( s2/1024.0*1000.0));
+
+  lcd.setCursor(24,0); 
+
+  lcd.print("V=");
+  lcd.print(s2/205);
+  lcd.print(".");
+  aHelp = s2/205;
+  lcd.print( int( (s2 - aHelp*205)/2.05) );
+
+  Serial.print("   V*I = ");
+
+  int MPPT = s2/204*sensorValue;
+  Serial.print(MPPT);
+  lcd.setCursor(0,1); 
+  lcd.print("curr mP=");
+  lcd.print(MPPT/10);
+  lcd.print(".");
+  aHelp = MPPT/100;
+  lcd.print( MPPT - aHelp*10 );
+
+  if ( MPPT > maxPPT )
+  { 
+    maxPPT = MPPT;
+    maxPPTCurrent = sensorValue;
+    maxPPTVolt = s2;
+
+  }
+  Serial.println( ); 
+
+  lcd.setCursor(16,1);  
+  lcd.print("*mA=");
+  lcd.print(maxPPTCurrent/10);
+
+  aHelp = maxPPTCurrent/10;
+  lcd.print(".");
+  lcd.print( maxPPTCurrent - aHelp*10 );
+
+
+  // lcd.setCursor(22,1);  
+  lcd.print(" *V=");
+  lcd.print(maxPPTVolt/205);
+  lcd.print(".");
+  aHelp = maxPPTVolt/100;
+  lcd.print(int (( maxPPTVolt - aHelp*2)/2.05) );
+
+
+
+  // lcd.setCursor(28,1);  
+
+  //lcd.print(maxPPT);
+  delay(250);          
+
+}
+
+
+
