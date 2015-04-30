@@ -1,0 +1,137 @@
+import processing.serial.*; 
+
+Serial myPort;    // The serial port
+
+String inString;  // Input string from serial port
+int lf = 10;      // ASCII linefeed 
+int current = 0;
+int volt = 0;
+
+int maxPPT = 0;
+
+PFont   f1;
+
+float scaleF = 1.0;
+
+//String titleString = "2 parallel solar YH 57X65";
+//String titleString = "6 series solar YH-46X76";
+//String titleString = "10 series solar YH-26X46";//1.4
+//String titleString = "miniisw";
+//String titleString = "solar cap cell";
+//String titleString = "solar generation box cell";
+String titleString = "solar enrgy experiment kit";
+void setup() { 
+  size(1000, 600); 
+  smooth();
+
+  f1 = createFont("SansSerif-48", 48);
+  textFont(f1);
+  // You'll need to make this font with the Create Font Tool 
+
+  // List all the available serial ports: 
+
+  println(Serial.list()); 
+
+  // I know that the first port in the serial list on my mac 
+  // is always my  Keyspan adaptor, so I open Serial.list()[0]. 
+  // Open whatever port is the one you're using. 
+
+  myPort = new Serial(this, Serial.list()[2], 9600); 
+  myPort.bufferUntil(lf);
+}
+
+void serialEvent(Serial p) { 
+
+  inString = p.readString();
+  println(   inString );
+  String substringCurrent = inString.substring(5, 8);
+  println( substringCurrent);
+  String substringVolt = "";
+  if ( int(substringVolt) > 99 )
+    substringVolt = inString.substring(15, 19);
+  else
+    substringVolt = inString.substring(14, 17);
+  println( substringVolt);
+  current = int (substringCurrent);
+  volt = int ( substringVolt);
+  println("volt="+ volt + " current=" + current);
+  println( volt*current);
+} 
+
+void draw() {
+
+  fill(0);
+  textSize(32);
+  text( titleString, 100, 50);
+  text("MPPT", 100, 80);
+  textSize(24);
+  int d = day();    // Values from 1 - 31
+  int m = month();  // Values from 1 - 12
+  int y = year();   // 2003, 2004, 2005, etc.
+
+  String s = String.valueOf(d) + "-" + String.valueOf(m) + "-" + String.valueOf(y) + " (dd-mm-yyyy)";
+  text(s, 300, 100);
+
+
+  textSize(12);
+
+  int MMPT = current*volt;
+  line( 50, height - 50, 50, 50);
+  fill(0, 255, 0);
+  for ( int i = 0; i<600; i+=100) {
+    line( 40, height - i - 50, 60, height - i- 50);
+    text( round(i/10.0), 20, height - i - 45);
+  }
+  text ( "I axis (mA)", 30, 20);
+
+  fill(255, 0, 0);
+  line( 50, height - 50, 800, height - 50);
+
+  for ( int i = 0; i<1500; i+=200) {
+    line(i/2+ 50, height - 40, i/2+ 50, height - 80);
+    text( round(i/200.0)+".0", i/2+ 40, height - 25);
+  }
+  text("            green dots= current - voltage relation (by varying load resistance)", 600, height - 120);
+  text("V axis      red dots= power ( = V . I )", 600, height - 90);
+
+
+  fill(10);
+  rect( 580, height - 170, 200, 20);
+  fill(0, 255, 0);
+  text( "scaleF = " + scaleF, 600, height - 150);
+
+
+  fill(255, 0, 0);
+  ellipse(volt/2.0*scaleF + 50, height - 50 - current*volt/500.0, 5, 5);
+
+  fill(0, 255, 0);
+
+  ellipse(volt/2.0*scaleF + 50, height - 50 - 0.80*current, 5, 5);
+
+  //println(int( volt*10)+ "     " + int( height - 500 + current*volt));
+  if ( MMPT> maxPPT ) {
+    // maxPPT = MMPT;
+    // text ( volt, height -100 - current*volt/10 -30 , volt );
+  }
+}
+
+
+void keyPressed() {
+
+  if (key == CODED) {
+    if (keyCode == UP) {
+      background(0) ;
+    } 
+    else if (keyCode == DOWN) {
+      background(50) ;
+    } 
+    else if (keyCode == RIGHT) {
+      background(100) ;
+    } 
+    else if (keyCode == LEFT) {
+      background(200) ;
+    }
+  }
+  if ( key == 'u') scaleF +=0.01;
+  if ( key == 'd') scaleF -=0.01;
+}
